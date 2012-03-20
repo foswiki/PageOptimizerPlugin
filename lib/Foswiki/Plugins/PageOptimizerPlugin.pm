@@ -25,7 +25,7 @@ use URI ();
 use Compress::Zlib ();
 
 our $VERSION = '$Rev$';
-our $RELEASE = '0.01';
+our $RELEASE = '0.02';
 our $SHORTDESCRIPTION = 'Optimize html markup, as well as js and css';
 our $NO_PREFS_IN_TOPIC = 1;
 our $pluginName = 'PageOptimizerPlugin';
@@ -34,6 +34,12 @@ use constant DEBUG => 0;    # toggle me
 
 ###############################
 sub initPlugin {
+
+  Foswiki::Func::registerRESTHandler('statistics', sub {
+    require Foswiki::Plugins::PageOptimizerPlugin::Stats;
+    return Foswiki::Plugins::PageOptimizerPlugin::Stats::restStatistics(@_);
+  });
+
   return 1;
 }
 
@@ -67,6 +73,10 @@ sub completePageHandler {
     $text =~ s/<style +type=["']text\/css["']/<style/g;
     $text =~ s/<link (.*?rel=["']stylesheet["'].*?)\/>/_processLinkStyle($1)/ge;
   }
+
+  my $query = Foswiki::Func::getCgiQuery();
+  my $refresh = $query->param("refresh") || '';
+  purgeCache() if $refresh =~ /\ball\b/;
 
   $text = optimizeJavaScript($text);
   $text = optimizeStylesheet($text);
@@ -165,7 +175,9 @@ sub optimizeJavaScript {
     $cachedData = Compress::Zlib::memGzip($cachedData);
     Foswiki::Func::saveFile($cacheFileName . '.gz', $cachedData);
 
+    logJavaScript(\@jsUrls);
   }
+
 
   # insert the cached javascript at the first position we've found a js url
   $text =~ s/\0js\0/<script src='$cacheUrl'><\/script>/;
@@ -206,6 +218,8 @@ sub optimizeStylesheet {
     Foswiki::Func::saveFile($cacheFileName, $cachedData);
     $cachedData = Compress::Zlib::memGzip($cachedData);
     Foswiki::Func::saveFile($cacheFileName . '.gz', $cachedData);
+
+    logStylesheet(\@cssUrls);
   }
 
   $text =~ s/\0css\0/<link rel='stylesheet' href='$cacheUrl' media='all' \/>/;
@@ -269,6 +283,19 @@ sub parseStylesheet {
 }
 
 ###############################
+sub purgeCache {
+
+  my $cacheDir = $Foswiki::cfg{PubDir} . '/' . $Foswiki::cfg{SystemWebName} . '/' . $pluginName . '/cache/';
+
+  opendir(my $dh, $cacheDir);
+  my @files = map { Foswiki::Sandbox::normalizeFileName($cacheDir . '/' . $_) } grep { !/^(\.|README)/ } readdir $dh;
+  closedir $dh;
+
+  #writeDebug("cleaning up @files");
+  unlink @files;
+}
+
+###############################
 sub getCacheEntry {
   my ($type, $urls) = @_;
 
@@ -310,5 +337,24 @@ sub rewriteUrl {
 
   return $url;
 }
+
+###############################
+sub logJavaScript {
+
+  return unless $Foswiki::cfg{PageOptimizerPlugin}{GatherStatistics};
+
+  require Foswiki::Plugins::PageOptimizerPlugin::Stats;
+  Foswiki::Plugins::PageOptimizerPlugin::Stats::logJavaScript(@_);
+}
+
+###############################
+sub logStylesheet {
+
+  return unless $Foswiki::cfg{PageOptimizerPlugin}{GatherStatistics};
+  
+  require Foswiki::Plugins::PageOptimizerPlugin::Stats;
+  Foswiki::Plugins::PageOptimizerPlugin::Stats::logStylesheet(@_);
+}
+
 
 1;

@@ -25,7 +25,7 @@ The following list of transformations is performed:
    * style blocks of type =text/css= don't need a =type= argument anymore as
      that's the default in html5
    * citations produced by foswiki's =&gt;= at the beginning of a line are
-     collapsed into one =&lt;div>= block of type =foswikiCite= of =foswikiBlockCite=
+     collapsed into one =&lt;div>= block of type =foswikiCite=, or =foswikiBlockCite=
      when there are multiple citation lines following
    * =&lt;verbatim>= blocks contained in template comments are rewritten to look nicer
      for better readability of view templates coded in topics
@@ -40,9 +40,17 @@ and =url()= statements are working as expected.
 The combined css (js) files are cached and reused by pages that have the same
 profile of assets loaded into the page. Or expressed the other way around: each page
 that differs in the set of assets will get its own combined stylesheet (javascript).
-This is still object of optimization. Further versions of <nop>%TOPIC% will come with
-approriate logging capabilities to analyze which css (js) files go together on most
-pages while some appear only sporadically.
+This is still object of optimization. 
+
+<nop>%TOPIC% is able to gather statistics about how often specific css (js)
+files have been used while combining them with others.  This feature is
+switched off by default but can be enabled using the ={GatherStatistics}=
+switch in =configure=. Once statistics are enabled, the plugin will record css
+and js use.  Results can be printed out using the =statistics= REST handler.
+For now, this is a rather crude statistic how often css (js) file have been
+used per pages visited. E.g. a value of 100% means: this asset has been used on
+all pages, whereas lower values indicate a decreasing frequency of those files
+being used.
 
 All css and js files will be cached in plain text as well as encoded =gzip= compressed
 for browsers supporting on-the-fly decompression of js and css files.
@@ -70,6 +78,7 @@ the =refresh= url parameter:
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  20 Mar 2012: | added statistics module |
 |  19 Mar 2012: | initial checkin |
 |  Dependencies: | %$DEPENDENCIES% |
 |  Home page: | Foswiki:Extensions/%TOPIC% |
