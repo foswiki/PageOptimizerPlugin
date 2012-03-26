@@ -25,7 +25,7 @@ use URI ();
 use Compress::Zlib ();
 
 our $VERSION = '$Rev$';
-our $RELEASE = '0.02';
+our $RELEASE = '0.03';
 our $SHORTDESCRIPTION = 'Optimize html markup, as well as js and css';
 our $NO_PREFS_IN_TOPIC = 1;
 our $pluginName = 'PageOptimizerPlugin';
@@ -78,8 +78,8 @@ sub completePageHandler {
   my $refresh = $query->param("refresh") || '';
   purgeCache() if $refresh =~ /\ball\b/;
 
-  $text = optimizeJavaScript($text);
-  $text = optimizeStylesheet($text);
+  $text = optimizeJavaScript($text) if $Foswiki::cfg{PageOptimizerPlugin}{OptimizeJavaScript};
+  $text = optimizeStylesheets($text) if $Foswiki::cfg{PageOptimizerPlugin}{OptimizeStylesheets};
 
   $text =~ s/^\s+$//gms;    # remove a few empty lines
 
@@ -189,7 +189,7 @@ sub optimizeJavaScript {
 }
 
 ###############################
-sub optimizeStylesheet {
+sub optimizeStylesheets {
   my $text = shift;
 
   # collect all css

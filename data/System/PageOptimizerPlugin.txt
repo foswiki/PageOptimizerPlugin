@@ -78,6 +78,7 @@ the =refresh= url parameter:
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  26 Mar 2012: | added flags to turn on/off specific optimizations |
 |  20 Mar 2012: | added statistics module |
 |  19 Mar 2012: | initial checkin |
 |  Dependencies: | %$DEPENDENCIES% |
