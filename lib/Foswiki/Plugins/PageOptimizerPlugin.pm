@@ -25,7 +25,7 @@ use URI ();
 use Compress::Zlib ();
 
 our $VERSION = '$Rev$';
-our $RELEASE = '0.03';
+our $RELEASE = '0.04';
 our $SHORTDESCRIPTION = 'Optimize html markup, as well as js and css';
 our $NO_PREFS_IN_TOPIC = 1;
 our $pluginName = 'PageOptimizerPlugin';
@@ -129,7 +129,10 @@ sub optimizeJavaScript {
 
   # collect all javascript
   my @jsUrls = ();
-  while ($text =~ s/<script .*?src=["'](\/[^"']+)["'].*><\/script>/\0js\0/) {
+  my $excludePattern = '(?!.*'.$Foswiki::cfg{PageOptimizerPlugin}{ExcludeJavaScript}.')' 
+    if defined $Foswiki::cfg{PageOptimizerPlugin}{ExcludeJavaScript};
+
+  while ($text =~ s/<script .*?src=["'](\/$excludePattern[^"']+)["'].*><\/script>/\0js\0/) {
     push @jsUrls, $1;
   }
 
@@ -234,6 +237,12 @@ sub _gatherCssUrls {
 
   # link tag
   if ($type eq 'link') {
+    my $excludePattern = $Foswiki::cfg{PageOptimizerPlugin}{ExcludeCss}
+      if defined $Foswiki::cfg{PageOptimizerPlugin}{ExcludeCss};
+
+    if ($data =~ /$excludePattern/) {
+      return "<style media='all'>$data</style>";
+    }
 
     #writeDebug("found url $data in link tag");
     push @$cssUrls, $data;

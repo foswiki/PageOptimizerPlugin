@@ -24,4 +24,15 @@ $Foswiki::cfg{PageOptimizerPlugin}{OptimizeStylesheets} = 1;
 # reusage.
 $Foswiki::cfg{PageOptimizerPlugin}{GatherStatistics} = 0;
 
+# **REGEX**
+# This regular expression lets you specify a pattern matching JavaScript files to
+# be excluded from caching. For instance, TinyMCEPlugin is known to break when
+# processed by the optimizer.
+$Foswiki::cfg{PageOptimizerPlugin}{ExcludeJavaScript} = 'TinyMCEPlugin';
+
+# **REGEX**
+# This regular expression lets you specify a pattern matching style sheets to
+# be excluded from caching. 
+$Foswiki::cfg{PageOptimizerPlugin}{ExcludeCss} = '';
+
 1;
