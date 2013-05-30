@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2012 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2012-2013 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@ use Digest::MD5 ();
 use URI ();
 use Compress::Zlib ();
 
-our $VERSION = '$Rev$';
-our $RELEASE = '0.04';
+our $VERSION = '0.10';
+our $RELEASE = '0.10';
 our $SHORTDESCRIPTION = 'Optimize html markup, as well as js and css';
 our $NO_PREFS_IN_TOPIC = 1;
 our $pluginName = 'PageOptimizerPlugin';
@@ -60,7 +60,7 @@ sub completePageHandler {
 
   # clean up
   if ($Foswiki::cfg{PageOptimizerPlugin}{CleanUpHTML}) {
-    $text =~ s/<!--.*?-->//g;
+    $text =~ s/<!--[^\[<].*?-->//g;
     $text =~ s/^\s*$//gms;
     $text =~ s/(<\/html>).*?$/$1/gs;
     
