@@ -38,7 +38,7 @@ sub initPlugin {
   Foswiki::Func::registerRESTHandler('statistics', sub {
     require Foswiki::Plugins::PageOptimizerPlugin::Stats;
     return Foswiki::Plugins::PageOptimizerPlugin::Stats::restStatistics(@_);
-  });
+  }, authenticate => 0);
 
   return 1;
 }
