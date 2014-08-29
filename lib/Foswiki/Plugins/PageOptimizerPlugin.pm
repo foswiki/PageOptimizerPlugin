@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2012-2013 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2012-2014 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,28 +24,32 @@ use Digest::MD5 ();
 use URI ();
 use Compress::Zlib ();
 
-our $VERSION = '0.10';
-our $RELEASE = '0.10';
+our $VERSION = '0.11';
+our $RELEASE = '0.11';
 our $SHORTDESCRIPTION = 'Optimize html markup, as well as js and css';
 our $NO_PREFS_IN_TOPIC = 1;
 our $pluginName = 'PageOptimizerPlugin';
 
-use constant DEBUG => 0;    # toggle me
+use constant TRACE => 0;    # toggle me
 
 ###############################
 sub initPlugin {
 
   Foswiki::Func::registerRESTHandler('statistics', sub {
-    require Foswiki::Plugins::PageOptimizerPlugin::Stats;
-    return Foswiki::Plugins::PageOptimizerPlugin::Stats::restStatistics(@_);
-  }, authenticate => 0);
+      require Foswiki::Plugins::PageOptimizerPlugin::Stats;
+      return Foswiki::Plugins::PageOptimizerPlugin::Stats::restStatistics(@_);
+    }, 
+    authenticate => 1,
+    validate => 0,
+    http_allow => 'GET',
+  );
 
   return 1;
 }
 
 ###############################
 sub writeDebug {
-  return unless DEBUG;
+  return unless TRACE;
   print STDERR "- $pluginName - " . $_[0] . "\n";
 }
 
@@ -60,6 +64,7 @@ sub completePageHandler {
 
   # clean up
   if ($Foswiki::cfg{PageOptimizerPlugin}{CleanUpHTML}) {
+    use bytes;
     $text =~ s/<!--[^\[<].*?-->//g;
     $text =~ s/^\s*$//gms;
     $text =~ s/(<\/html>).*?$/$1/gs;
@@ -77,6 +82,8 @@ sub completePageHandler {
     $text =~ s/<script +type=["']text\/javascript["']/<script/g;
     $text =~ s/<style +type=["']text\/css["']/<style/g;
     $text =~ s/<link (.*?rel=["']stylesheet["'].*?)\/>/_processLinkStyle($1)/ge;
+
+    no bytes;
   }
 
   my $query = Foswiki::Func::getCgiQuery();
@@ -111,9 +118,9 @@ sub _processCite {
   my $block = shift;
 
   $block =~ s/^>/<span class='foswikiCiteChar'>&gt;<\/span>/gm;
-  $block =~ s/\n/<br \/>\n/g;
+  #$block =~ s/\n/<br \/>\n/g;
 
-  my $class = ($block =~ /<br \/>/)?'foswikiBlockCite':'foswikiCite';
+  my $class = ($block =~ /\n/)?'foswikiBlockCite':'foswikiCite';
 
   return "<div class='$class'>".$block."</div>";
 }
@@ -156,7 +163,7 @@ sub optimizeJavaScript {
   my $query = Foswiki::Func::getCgiQuery();
   my $refresh = $query->param("refresh") || '';
 
-  if (DEBUG || $refresh =~ /\b(on|all|cache|js)\b/ || !-f $cacheFileName) {    
+  if (TRACE || $refresh =~ /\b(on|all|cache|js)\b/ || !-f $cacheFileName) {    
     # TODO: compare timestamps of files
     writeDebug("creating cache at $cacheFileName");
 
@@ -169,7 +176,7 @@ sub optimizeJavaScript {
         my $data = Foswiki::Func::readFile($fileName);
         if ($data) {
           $cachedData .= "\n\n/* DEBUG: fileName=$fileName */\n"
-            if DEBUG;
+            if TRACE;
           $cachedData .= $data;
         }
       } else {
@@ -213,7 +220,7 @@ sub optimizeStylesheets {
   my $query = Foswiki::Func::getCgiQuery();
   my $refresh = $query->param("refresh") || '';
 
-  if (DEBUG || $refresh =~ /\b(on|all|cache|css)\b/ || !-f $cacheFileName) {    
+  if (TRACE || $refresh =~ /\b(on|all|cache|css)\b/ || !-f $cacheFileName) {    
     # TODO: compare timestamps of files
     writeDebug("creating cache at $cacheFileName");
 
