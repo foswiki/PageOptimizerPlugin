@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2012-2014 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2012-2015 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@ use Digest::MD5 ();
 use URI ();
 use Compress::Zlib ();
 
-our $VERSION = '0.11';
-our $RELEASE = '0.11';
+our $VERSION = '1.00';
+our $RELEASE = '23 Feb 2015';
 our $SHORTDESCRIPTION = 'Optimize html markup, as well as js and css';
 our $NO_PREFS_IN_TOPIC = 1;
 our $pluginName = 'PageOptimizerPlugin';
@@ -63,11 +63,17 @@ sub completePageHandler {
   writeDebug("completePageHandler()");
 
   # clean up
+  use bytes;
+  $text =~ s/<!--\s+-->//g; # remove this in any case
+  $text =~ s/(<\/html>).*?$/$1/gs;
+
+  # remove non-macros and leftovers
+  $text =~ s/%(?:REVISIONS|REVTITLE|REVARG|QUERYPARAMSTRING)%//g;
+  $text =~ s/^%META:\w+{.*}%$//gm;
+
   if ($Foswiki::cfg{PageOptimizerPlugin}{CleanUpHTML}) {
-    use bytes;
     $text =~ s/<!--[^\[<].*?-->//g;
     $text =~ s/^\s*$//gms;
-    $text =~ s/(<\/html>).*?$/$1/gs;
     
     # EXPERIMENTAIL: make at least some <p>s real paragraphs
     if (1) {
@@ -83,8 +89,8 @@ sub completePageHandler {
     $text =~ s/<style +type=["']text\/css["']/<style/g;
     $text =~ s/<link (.*?rel=["']stylesheet["'].*?)\/>/_processLinkStyle($1)/ge;
 
-    no bytes;
   }
+  no bytes;
 
   my $query = Foswiki::Func::getCgiQuery();
   my $refresh = $query->param("refresh") || '';
@@ -120,7 +126,7 @@ sub _processCite {
   $block =~ s/^>/<span class='foswikiCiteChar'>&gt;<\/span>/gm;
   #$block =~ s/\n/<br \/>\n/g;
 
-  my $class = ($block =~ /\n/)?'foswikiBlockCite':'foswikiCite';
+  my $class = ($block =~ /\n/)?'foswikiBlockQuote':'foswikiCite';
 
   return "<div class='$class'>".$block."</div>";
 }
