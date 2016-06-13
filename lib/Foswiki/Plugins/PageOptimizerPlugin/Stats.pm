@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2012-2015 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2012-2016 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -11,7 +11,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# For licensing info read LICENSE file in the TWiki root.
+# For licensing info read LICENSE file in the Foswiki root.
 
 package Foswiki::Plugins::PageOptimizerPlugin::Stats;
 
@@ -23,8 +23,27 @@ use Foswiki::Plugins ();
 our $pluginName = 'PageOptimizerPlugin';
 
 ###############################
+sub new {
+  my $class = shift;
+
+
+  my $this = bless({
+      @_
+    },
+    $class
+  );
+
+  return $this;
+}
+
+###############################
+sub finish {
+}
+
+
+###############################
 sub logJavaScript {
-  my $urls = shift;
+  my ($this, $urls) = @_;
 
   my $workArea = Foswiki::Func::getWorkArea($pluginName);
   my $fileName = $workArea.'/javascript.log';
@@ -40,7 +59,7 @@ sub logJavaScript {
 
 ###############################
 sub logStylesheet {
-  my $urls = shift;
+  my ($this, $urls) = @_;
 
   my $workArea = Foswiki::Func::getWorkArea($pluginName);
   my $fileName = $workArea.'/stylesheet.log';
@@ -56,7 +75,7 @@ sub logStylesheet {
 
 ###############################
 sub restStatistics {
-  my ($session, $subject, $verb, $response) = @_;
+  my ($this, $session, $subject, $verb, $response) = @_;
 
   #print STDERR "called restStatistics\n";
 
@@ -67,7 +86,7 @@ sub restStatistics {
 
   if (!defined $type || $type eq 'js') {
     my $fileName = $workArea.'/javascript.log';
-    my $stats = gatherStatistics($fileName);
+    my $stats = $this->gatherStatistics($fileName);
     if ($stats) {
       print "javascripts: ".scalar(keys %$stats)."\n";
       foreach my $key (sort {$stats->{$b} <=> $stats->{$a}} keys %$stats) {
@@ -79,7 +98,7 @@ sub restStatistics {
 
   if (!defined $type || $type eq 'css') {
     my $fileName = $workArea.'/stylesheet.log';
-    my $stats = gatherStatistics($fileName);
+    my $stats = $this->gatherStatistics($fileName);
     if ($stats) {
       print "stylesheets: ".scalar(keys %$stats)."\n";
       foreach my $key (sort {$stats->{$b} <=> $stats->{$a}} keys %$stats) {
@@ -94,7 +113,7 @@ sub restStatistics {
 
 ###############################
 sub gatherStatistics {
-  my ($fileName) = @_;
+  my ($this, $fileName) = @_;
 
   #print STDERR "called gatherStatistics\n";
 
