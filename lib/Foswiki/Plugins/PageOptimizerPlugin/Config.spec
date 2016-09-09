@@ -9,7 +9,7 @@ $Foswiki::cfg{PageOptimizerPlugin}{CleanUpHTML} = 1;
 
 # **BOOLEAN**
 # If enabled, all JavaScript files will be combined and cached into one file.
-$Foswiki::cfg{PageOptimizerPlugin}{OptimizeJavaScript} = 1;
+$Foswiki::cfg{PageOptimizerPlugin}{OptimizeJavaScript} = 0;
 
 # **BOOLEAN**
 # If enabled, all stylesheets will be combined and cached into one file.
@@ -28,11 +28,21 @@ $Foswiki::cfg{PageOptimizerPlugin}{GatherStatistics} = 0;
 # This regular expression lets you specify a pattern matching JavaScript files to
 # be excluded from caching. For instance, TinyMCEPlugin is known to break when
 # processed by the optimizer.
-$Foswiki::cfg{PageOptimizerPlugin}{ExcludeJavaScript} = 'TinyMCEPlugin';
+$Foswiki::cfg{PageOptimizerPlugin}{ExcludeJavaScript} = 'TinyMCEPlugin|hyphenator';
 
 # **REGEX**
 # This regular expression lets you specify a pattern matching style sheets to
 # be excluded from caching. 
 $Foswiki::cfg{PageOptimizerPlugin}{ExcludeCss} = '';
+
+# **URLPATH CHECK="emptyok undefok"**
+# Url path where optimized javascript and css is located. Note this has to match
+# the PATH parameter below.
+$Foswiki::cfg{PageOptimizerPlugin}{CachePath} = '';
+
+# **PATH CHECK="emptyok undefok"**
+# File path where optimized javascript and css is stored. Note this has to
+# match the URL parameter above.
+$Foswiki::cfg{PageOptimizerPlugin}{CacheDir} = '';
 
 1;

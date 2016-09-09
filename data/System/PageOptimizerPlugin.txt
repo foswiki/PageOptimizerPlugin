@@ -69,6 +69,7 @@ the =refresh= url parameter:
 %$DEPENDENCIES%
 
 ---++ Change History
+|  09 Sep 2016: | improved cache handling, i.e. added a rest handler to purge the cache occasionally |
 |  13 Jun 2016: | fixed compatibility with <nop>AngularPlugin/AngularSkin; performance improvements |
 |  23 Feb 2015: | remove some bogus non-macros if left over, such as REVISIONS, REVTITLE, REVARG, QUERYPARAMSTRING |
 |  04 Apr 2014: | flag rest handlers that don't require authentication |

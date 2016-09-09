@@ -69,8 +69,13 @@ sub optimizeJavaScript {
   # collect all javascript
   my @jsUrls = ();
   my $excludePattern = '';
-  $excludePattern = '(?!.*(?:'.$Foswiki::cfg{PageOptimizerPlugin}{ExcludeJavaScript}.'))'
-    if defined $Foswiki::cfg{PageOptimizerPlugin}{ExcludeJavaScript};
+
+  # if we defined JQueryVersionForOldIEs then the jQuery core lib has to be excluded from the process
+  if (defined $Foswiki::cfg{PageOptimizerPlugin}{ExcludeJavaScript} || $Foswiki::cfg{JQueryPlugin}{JQueryVersionForOldIEs}) {
+    $excludePattern = '(?!.*(?:' . $Foswiki::cfg{PageOptimizerPlugin}{ExcludeJavaScript} . ($Foswiki::cfg{JQueryPlugin}{JQueryVersionForOldIEs} ? '|jquery\-\d\.\d' : '') . '))';
+  }
+
+  #_writeDebug("excludePattern=$excludePattern");
 
   my %classes = ();
   $classes{"script"} = 1;
@@ -96,7 +101,19 @@ sub optimizeJavaScript {
   my $query = Foswiki::Func::getCgiQuery();
   my $refresh = $query->param("refresh") || '';
 
-  if ($refresh =~ /\b(on|all|cache|js)\b/ || !-f $cacheFileName) {
+  my $cacheFileTime = _getModificationTime($cacheFileName);
+  my $needsUpdate = 0;
+  foreach my $url (@jsUrls) {
+    my $fileName = _url2FileName($url);
+    my $fileTime = _getModificationTime($fileName);
+    if ($cacheFileTime < $fileTime) {
+      $needsUpdate = 1;
+      _writeDebug("$fileName has been updated ... refreshing cache file");
+      last;
+    }
+  }
+
+  if ($needsUpdate || $refresh =~ /\b(on|all|cache|js)\b/ || !-f $cacheFileName) {
     # TODO: compare timestamps of files
     _writeDebug("creating cache at $cacheFileName");
 
@@ -144,7 +161,7 @@ sub optimizeJavaScript {
   return $text;
 }
 
-###############################
+###############################################################################
 sub optimizeStylesheets {
   my ($this, $text) = @_;
 
@@ -152,7 +169,7 @@ sub optimizeStylesheets {
   $this->{_cssUrls} = [];
   my %classes = ();
 
-  while ($text =~ s/((?:<(link) (?:class=["']([^"']+)["'])?.*?rel=["']stylesheet["']\s+href=["'](\/[^"']+)["']\s+media=["']all["'][^\/>]*?\/?>)|(?:<(style)\s+.*?media=["']all["'][^>]*?>(.*?)<\/style>))/$this->_gatherCssUrls($2||$5, $4||$6)||$1/e) {
+  while ($text =~ s/((?:<(link) (?:class=["']([^"']+)["'])?.*?rel=["']stylesheet["']\s+href=["'](\/[^"']+)["'].*media=["']all["'](?:\s+type=["']text\/css["'])?[^\/>]*?\/?>)|(?:<(style)\s+.*?media=["']all["'][^>]*?>(.*?)<\/style>))/$this->_gatherCssUrls($2||$5, $4||$6)||$1/e) {
     if ($3) {
       $classes{$_} = 1 foreach split(/ /, $3);
     }
@@ -165,8 +182,19 @@ sub optimizeStylesheets {
   my $query = Foswiki::Func::getCgiQuery();
   my $refresh = $query->param("refresh") || '';
 
-  if ($refresh =~ /\b(on|all|cache|css)\b/ || !-f $cacheFileName) {    
-    # TODO: compare timestamps of files
+  my $cacheFileTime = _getModificationTime($cacheFileName);
+  my $needsUpdate = 0;
+  foreach my $url (@{$this->{_cssUrls}}) {
+    my $fileName = _url2FileName($url);
+    my $fileTime = _getModificationTime($fileName);
+    if ($cacheFileTime < $fileTime) {
+      $needsUpdate = 1;
+      _writeDebug("$fileName has been updated ... refreshing cache file");
+      last;
+    }
+  }
+
+  if ($needsUpdate || $refresh =~ /\b(on|all|cache|css)\b/ || !-f $cacheFileName) {    
     _writeDebug("creating cache at $cacheFileName");
 
     my $cachedData = '';
@@ -192,6 +220,16 @@ sub optimizeStylesheets {
   $text =~ s/\0css\0//g;
 
   return $text;
+}
+
+###############################
+sub _getModificationTime {
+  my ($file) = @_;
+
+  return 0 unless $file;
+
+  my @stat = stat($file);
+  return $stat[9] || $stat[10] || 0;
 }
 
 ###############################
@@ -259,8 +297,10 @@ sub purgeCache {
   my @files = map { Foswiki::Sandbox::normalizeFileName($this->{cacheDir} . $_) } grep { !/^(\.|README)/ } readdir $dh;
   closedir $dh;
 
-  #_writeDebug("cleaning up @files");
+  _writeDebug("cleaning up ".scalar(@files)." files");
   unlink @files;
+
+  return;
 }
 
 ###############################

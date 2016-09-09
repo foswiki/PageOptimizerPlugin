@@ -24,8 +24,8 @@ use Digest::MD5 ();
 use URI ();
 use Compress::Zlib ();
 
-our $VERSION = '2.00';
-our $RELEASE = '10 Jun 2016';
+our $VERSION = '2.10';
+our $RELEASE = '09 Sep 2016';
 our $SHORTDESCRIPTION = 'Optimize html markup, as well as js and css';
 our $NO_PREFS_IN_TOPIC = 1;
 our $core;
@@ -40,6 +40,12 @@ sub initPlugin {
     authenticate => 1,
     validate => 0,
     http_allow => 'GET',
+  );
+
+  Foswiki::Func::registerRESTHandler('purgeCache', sub { return getCore()->purgeCache(@_); },
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
   );
 
   return 1;
@@ -69,6 +75,9 @@ sub getStats {
 sub finishPlugin {
   $core->finish if defined $core;
   $stats->finish if defined $stats;
+
+  undef $core;
+  undef $stats;
 }
 
 ###############################################################################
@@ -100,10 +109,6 @@ sub completePageHandler {
     # clean up %{<verbatim>}% ...%{</verbatim>}%
     $text =~ s/\%\{(<pre[^>]*>)\}&#37;\s*/$1/g;
     $text =~ s/\s*&#37;\{(<\/pre>)\}\%/$1/g;
-
-    $text =~ s/<script +type=["']text\/javascript["']/<script/g;
-    $text =~ s/<style +type=["']text\/css["']/<style/g;
-    $text =~ s/<link (.*?rel=["']stylesheet["'].*?)\/>/_processLinkStyle($1)/ge;
 
     # make empty table cells really empty
     $text =~ s/(<td[^>]*>)\s+(<\/td>)/$1$2/gs;
@@ -144,13 +149,6 @@ sub _processCite {
   my $class = ($block =~ /\n/)?'foswikiBlockQuote':'foswikiCite';
 
   return "<div class='$class'>".$block."</div>";
-}
-
-###############################################################################
-sub _processLinkStyle {
-  my $args = shift;
-  $args =~ s/type=["'].*?["']//g;
-  return "<link $args/>";
 }
 
 1;
