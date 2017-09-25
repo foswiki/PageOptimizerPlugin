@@ -1,3 +1,4 @@
+!noci
 data/System/PageOptimizerPlugin.txt 0644
 lib/Foswiki/Plugins/PageOptimizerPlugin/Config.spec 0644
 lib/Foswiki/Plugins/PageOptimizerPlugin/Core.pm 0644

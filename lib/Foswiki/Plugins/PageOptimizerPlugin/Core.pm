@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2012-2016 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2012-2017 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,6 +17,7 @@ package Foswiki::Plugins::PageOptimizerPlugin::Core;
 
 use strict;
 use warnings;
+use Foswiki::Plugins();
 use Foswiki::Func();
 use Foswiki::Plugins::PageOptimizerPlugin ();
 
@@ -158,6 +159,11 @@ sub optimizeJavaScript {
   # remove the rest
   $text =~ s/\0js\0//g;
 
+  # add http/2 server push to http header
+  my $session = $Foswiki::Plugins::SESSION;
+  my $response = $session->{response};
+  $response->pushHeader('Link', '<'.$cacheUrl.'>; rel=preload; as=script' );
+
   return $text;
 }
 
@@ -216,8 +222,13 @@ sub optimizeStylesheets {
 
   my $classes = join(" ", sort keys %classes);
 
-  $text =~ s/\0css\0/<link class='$classes' rel='stylesheet' href='$cacheUrl' media='all' \/>/;
+  $text =~ s/\0css\0/<link rel='stylesheet' href='$cacheUrl' class='$classes' media='all' \/>/;
   $text =~ s/\0css\0//g;
+
+  # add http/2 server push to http header
+  my $session = $Foswiki::Plugins::SESSION;
+  my $response = $session->{response};
+  $response->pushHeader('Link', '<'.$cacheUrl.'>; rel=preload; as=style' );
 
   return $text;
 }

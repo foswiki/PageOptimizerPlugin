@@ -69,6 +69,8 @@ the =refresh= url parameter:
 %$DEPENDENCIES%
 
 ---++ Change History
+%TABLE{columnwidths="7em" tablewidth="100%"}%
+|  25 Sep 2017: | added http/2 push headers |
 |  09 Sep 2016: | improved cache handling, i.e. added a rest handler to purge the cache occasionally |
 |  13 Jun 2016: | fixed compatibility with <nop>AngularPlugin/AngularSkin; performance improvements |
 |  23 Feb 2015: | remove some bogus non-macros if left over, such as REVISIONS, REVTITLE, REVARG, QUERYPARAMSTRING |
@@ -86,7 +88,7 @@ the =refresh= url parameter:
 %META:FIELD{name="Release" title="Release" value="%25$RELEASE%25"}%
 %META:FIELD{name="Description" title="Description" value="%25$SHORTDESCRIPTION%25"}%
 %META:FIELD{name="Repository" title="Repository" value="https://github.com/foswiki/%25TOPIC%25"}%
-%META:FIELD{name="Copyright" title="Copyright" value="&copy; 2012-2016 Michael Daum http://michaeldaumconsulting.com"}%
+%META:FIELD{name="Copyright" title="Copyright" value="&copy; 2012-2017 Michael Daum http://michaeldaumconsulting.com"}%
 %META:FIELD{name="License" title="License" value="[[http://www.gnu.org/licenses/gpl.html][GPL (Gnu General Public License)]]"}%
 %META:FIELD{name="Home" title="Home" value="Foswiki:Extensions/%25TOPIC%25"}%
 %META:FIELD{name="Support" title="Support" value="Foswiki:Support/%25TOPIC%25"}%
